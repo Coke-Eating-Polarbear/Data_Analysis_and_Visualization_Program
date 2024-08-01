@@ -57,7 +57,7 @@ if conn:
                             cur.execute(query)
                             rows = cur.fetchall()
                             if rows:
-                                df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])                            
+                                df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
                                 st.dataframe(df)
                                 chart_type = st.selectbox('그래프 종류 선택', ['Line Plot', 'Bar Plot', 'Histogram', 'Pie Chart', 'Box Plot', 'Scatter Plot'])
                                 columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
@@ -82,6 +82,7 @@ if conn:
                                 elif chart_type == 'Scatter Plot':
                                     if x_var and y_var:
                                         graph.draw_scatter_plot(df, x_var, y_var)
+
                                 file = st.file_uploader('CSV파일이나 xls파일을 업로드해주세요')
                                 file_extension = file.name.split('.')[-1].lower()
                                 csv_ex = ['csv']
@@ -144,7 +145,7 @@ if conn:
                                 # INSERT SQL 문 생성 및 실행
                                 sql = f"INSERT INTO `{selected_table}` VALUES ({new_values})"
                                 cur.execute(sql)
-                                con.commit()
+                                conn.commit()
                                 st.success("성공적으로 값을 입력하였습니다.")
                             except Exception as e:
                                 st.error(f"비상!!! 에러발생!: {e}")
