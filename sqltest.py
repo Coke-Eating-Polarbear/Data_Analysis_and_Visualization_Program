@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 import seaborn as sns
 import matplotlib.pyplot as plt
-st.title("MySQL Database Manager")
+st.title("너무춥조 에어컨직빵이조의")
 
 # MySQL 연결 설정
 host = 'localhost'
@@ -15,13 +15,12 @@ charset = 'utf8'
 try:
     con = pymysql.connect(host=host, user=user, password=password, charset=charset)
     cur = con.cursor()
-    st.success("Connected to the database successfully.")
 except Exception as e:
-    st.error(f"Could not connect to the database: {e}")
+    st.error(f"데이터 베이스에 연결할수 없습니다.: {e}")
     con = None
 
 # 사이드바에서 선택할 작업 메뉴
-st.sidebar.title("Choose an action")
+st.sidebar.title("작업선택")
 action = st.sidebar.radio("Select action", ["Select", "Insert", "Update", "Delete"])
 
 # 데이터베이스 및 테이블 정보 관리
@@ -39,7 +38,7 @@ if con:
             cur.execute("SHOW TABLES")
             tables = [row[0] for row in cur.fetchall()]
             # 테이블 선택
-            selected_table = st.sidebar.selectbox("Select a table:", tables)
+            selected_table = st.sidebar.selectbox("테이블을 선택해주세요:", tables)
             if selected_table:
                 if action == "Select":
                     # 데이터 조회
@@ -101,8 +100,8 @@ if con:
                         st.error(f"An error occurred while retrieving data: {e}")
 
                 elif action == "Insert":
-                    st.subheader(f"Inserting new entry into {selected_table}")
-                    new_values = st.text_area("Enter new values (comma-separated):")
+                    st.subheader(f"선택한 테이블 {selected_table}에 값 입력하기")
+                    new_values = st.text_area("새로운 값 입력하기 (','로 구분합니다.):")
                     if st.button("Submit Insert"):
                         try:
                             sql = f"INSERT INTO `{selected_table}` VALUES ({new_values})"
@@ -113,7 +112,7 @@ if con:
                             st.error(f"An error occurred while adding the record: {e}")
 
                 elif action == "Update":
-                    st.subheader(f"Updating entries in {selected_table}")
+                    st.subheader(f"{selected_table}의 값을 바꿉니다.")
                     condition = st.text_input("Condition (e.g., id=1):")
                     update_values = st.text_area("Update values (e.g., name='new_name'):")
                     if st.button("Submit Update"):
