@@ -58,7 +58,7 @@ if conn:
                             cur.execute(query)
                             rows = cur.fetchall()
                             if rows:
-                                df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])                            
+                                df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
                                 st.dataframe(df)
                                 chart_type = st.selectbox('그래프 종류 선택', ['Line Plot', 'Bar Plot', 'Histogram', 'Pie Chart', 'Box Plot', 'Scatter Plot'])
                                 columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
@@ -83,7 +83,6 @@ if conn:
                                 elif chart_type == 'Scatter Plot':
                                     if x_var and y_var:
                                         graph.draw_scatter_plot(df, x_var, y_var)
-                                
                             else:
                                 st.info("선택하신 테이블에서 찾을수 없습니다.")
                     except Exception as e:
