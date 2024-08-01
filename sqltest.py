@@ -1,38 +1,37 @@
 import streamlit as st
-import pymysql
 import pandas as pd
 import streamlit as st
-import seaborn as sns
-import matplotlib.pyplot as plt
+
+
+from connect import sql_conn
+from function import graph
+
 st.title("MySQL Database Manager")
 
-# MySQL 연결 설정
-host = 'localhost'
-user = 'root'
-password = 'babo2862'
-charset = 'utf8'
-# 데이터베이스 연결
-try:
-    con = pymysql.connect(host=host, user=user, password=password, charset=charset)
-    cur = con.cursor()
+######### DB 연결부 ##########
+db_conn = sql_conn.DBConn()
+conn, cur = db_conn.active_conn()
+
+if conn == None or cur == None:
+    st.error(f"Could not connect to the database")
+else:
     st.success("Connected to the database successfully.")
-except Exception as e:
-    st.error(f"Could not connect to the database: {e}")
-    con = None
+###############################
+
 
 # 사이드바에서 선택할 작업 메뉴
 st.sidebar.title("Choose an action")
 action = st.sidebar.radio("Select action", ["Select", "Insert", "Update", "Delete"])
 
 # 데이터베이스 및 테이블 정보 관리
-if con:
+if conn:
     # 데이터베이스 목록 가져오기
     cur.execute("SHOW DATABASES")
     databases = [row[0] for row in cur.fetchall()]
 
     # 스키마 선택
     selected_db = st.sidebar.selectbox("Select a schema (database):", databases)
-    
+
     if selected_db:
         try:
             cur.execute(f"USE `{selected_db}`")
@@ -54,47 +53,27 @@ if con:
                             columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
                             x_var = st.selectbox('Select X variable', columns)
                             y_var = st.selectbox('Select Y variable', columns)
+
                             if chart_type == 'Line Plot':
                                 if x_var and y_var:
-                                    st.write(f"Line plot between {x_var} and {y_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.lineplot(data=df, x=x_var, y=y_var, ax=ax)
-                                    st.pyplot(fig)
+                                    graph.draw_line_plot(df, x_var, y_var)
                             elif chart_type == 'Bar Plot':
                                 if x_var:
-                                    st.write(f"Bar plot of {x_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.barplot(x=x_var, y=df[x_var].index, data=df, ax=ax)
-                                    st.pyplot(fig)
+                                    graph.draw_bar_plot(df, x_var)
                             elif chart_type == 'Histogram':
                                 if x_var:
-                                    st.write(f"Histogram of {x_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.histplot(df[x_var], ax=ax, bins=30)
-                                    st.pyplot(fig)
+                                    graph.draw_histogram(df, x_var)
                             elif chart_type == 'Pie Chart':
                                 if x_var:
-                                    st.write(f"Pie chart of {x_var}")
-                                    fig, ax = plt.subplots()
-                                    df[x_var].value_counts().plot.pie(ax=ax, autopct='%1.1f%%')
-                                    st.pyplot(fig)
-
+                                    graph.draw_pie_chart(df, x_var)
                             elif chart_type == 'Box Plot':
                                 if x_var:
-                                    st.write(f"Box plot of {x_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.boxplot(x=df[x_var], ax=ax)
-                                    st.pyplot(fig)
-
+                                    graph.draw_box_plot(df, x_var)
                             elif chart_type == 'Scatter Plot':
                                 if x_var and y_var:
-                                    st.write(f"Scatter plot between {x_var} and {y_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.scatterplot(data=df, x=x_var, y=y_var, ax=ax)
-                                    st.pyplot(fig)
-                            st.write("Pair Plot")
-                            pair_plot = sns.pairplot(df)
-                            st.pyplot(pair_plot)
+                                    graph.draw_scatter_plot(df, x_var, y_var)
+                            graph.draw_pair_plot(df)
+
                         else:
                             st.info("No data found in the selected table.")
                     except Exception as e:
@@ -107,7 +86,7 @@ if con:
                         try:
                             sql = f"INSERT INTO `{selected_table}` VALUES ({new_values})"
                             cur.execute(sql)
-                            con.commit()
+                            conn.commit()
                             st.success("Record added successfully.")
                         except Exception as e:
                             st.error(f"An error occurred while adding the record: {e}")
@@ -120,7 +99,7 @@ if con:
                         try:
                             sql = f"UPDATE `{selected_table}` SET {update_values} WHERE {condition}"
                             cur.execute(sql)
-                            con.commit()
+                            conn.commit()
                             st.success("Record updated successfully.")
                         except Exception as e:
                             st.error(f"An error occurred while updating the record: {e}")
@@ -132,12 +111,12 @@ if con:
                         try:
                             sql = f"DELETE FROM `{selected_table}` WHERE {condition}"
                             cur.execute(sql)
-                            con.commit()
+                            conn.commit()
                             st.success("Record deleted successfully.")
                         except Exception as e:
                             st.error(f"An error occurred while deleting the record: {e}")
         except Exception as e:
             st.error(f"An error occurred: {e}")
     # DB 연결 종료
-    if con:
-        con.close()
+    if conn:
+        conn.close()
