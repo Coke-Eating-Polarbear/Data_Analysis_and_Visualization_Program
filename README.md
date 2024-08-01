@@ -1,3 +1,8 @@
+## **프로젝트 화면**
+![image](https://github.com/user-attachments/assets/5485e233-99de-40b3-b415-3a9ca74dd67b)
+
+
+
 ## **Trouble Shooting**
 1. **활용 데이터에 구분할 수 없는 컬럼 코드 존재**
    - 문제: 데이터에 판단하기 어려운 코드 데이터가 존재
