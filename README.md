@@ -20,7 +20,10 @@ SQL DB와 Streamlit을 융합하여 데이터 분석가를 위한 간단한 데�
        <img src="https://github.com/user-attachments/assets/c5b5b53a-b0b8-41d7-9fce-e9ca5a0a218b" width="25%" />  <img src="https://github.com/user-attachments/assets/3a2a4b08-8011-4f1c-9fc7-08ad4c7f93e6 " width="40%" />  </p><br>
 
 2. **category 테이블을 작성하는 과정에서 너무 많은 분류 코드가 이미지 표로만 존재**
-   - 해결: Chat GPT에 이미지를 입력하여 text 형태로 반환하게 하였고, 이를 활용해 category 테이블 생성 
+   - 해결: Chat GPT에 이미지를 입력하여 text 형태로 반환하게 하였고, 이를 활용해 category 테이블 생성
+
+3. **엑셀 파일을 업로드 하는 과정에 xls 확장자는 입력을 하지못함**
+   - xls확장자는 못넣게 했습니다. 
 ---
 
 ## **향후 개선 계획**
