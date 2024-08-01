@@ -1,21 +1,19 @@
 import streamlit as st
 import pandas as pd
 import streamlit as st
-
-
 from connect import sql_conn
 from function import graph
 
-st.title("MySQL Database Manager")
+st.title("너무 춥조 에어컨 직빵이조")
 
 ######### DB 연결부 ##########
 db_conn = sql_conn.DBConn()
 conn, cur = db_conn.active_conn()
 
 if conn == None or cur == None:
-    st.error(f"Could not connect to the database")
+    st.error(f"DB가 그대를 거부하리")
 else:
-    st.success("Connected to the database successfully.")
+    st.success("DB연결 성공적.")
 ###############################
 
 
@@ -30,7 +28,7 @@ if conn:
     databases = [row[0] for row in cur.fetchall()]
 
     # 스키마 선택
-    selected_db = st.sidebar.selectbox("Select a schema (database):", databases)
+    selected_db = st.sidebar.selectbox("스키마 선택:", databases)
 
     if selected_db:
         try:
@@ -61,7 +59,7 @@ if conn:
                             if rows:
                                 df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])                            
                                 st.dataframe(df)
-                                chart_type = st.selectbox('Select Chart Type', ['Line Plot', 'Bar Plot', 'Histogram', 'Pie Chart', 'Box Plot', 'Scatter Plot'])
+                                chart_type = st.selectbox('그래프 종류 선택', ['Line Plot', 'Bar Plot', 'Histogram', 'Pie Chart', 'Box Plot', 'Scatter Plot'])
                                 columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
                                 x_var = st.selectbox('X 축 선택', columns)
                                 y_var = st.selectbox('Y 축 선택', columns)
@@ -118,44 +116,65 @@ if conn:
                             else:
                                 st.info("선택하신 테이블에서 찾을수 없습니다.")
                     except Exception as e:
-                        st.error(f"An error occurred while retrieving data: {e}")
-
+                        st.error(f"에러발생!: {e}")
                 elif action == "Insert":
                     st.subheader(f"선택한 테이블 {selected_table}에 값 입력하기")
-                    new_values = st.text_area("새로운 값 입력하기 (','로 구분합니다.):")
-                    if st.button("Submit Insert"):
-                        try:
-                            sql = f"INSERT INTO `{selected_table}` VALUES ({new_values})"
-                            cur.execute(sql)
-                            conn.commit()
-                            st.success("Record added successfully.")
-                        except Exception as e:
-                            st.error(f"An error occurred while adding the record: {e}")
+                    try:
+                        # 테이블의 열 정보 가져오기
+                        cur.execute(f"DESCRIBE `{selected_table}`")
+                        columns_info = cur.fetchall()
+
+                        # 열 이름과 데이터 타입 출력
+                        st.write("열 이름과 데이터 타입:")
+                        columns_description = []
+                        for column in columns_info:
+                            col_name = column[0]
+                            col_type = column[1]
+                            columns_description.append(f"{col_name} ({col_type})")
+                        st.write(", ".join(columns_description))
+
+                        # 사용자에게 입력 형식 안내
+                        st.write("위의 형식에 맞게 값을 입력하세요.")
+                        st.write("예: 'John', 28, '2021-01-01' (문자는 작은 따옴표로 감싸고, 숫자는 그대로 입력)")
+
+                        # 사용자가 입력한 값
+                        new_values = st.text_area("새로운 값 입력하기 (',(콤마)'로 구분합니다.):")
+                        if st.button("Insert 확인"):
+                            try:
+                                # INSERT SQL 문 생성 및 실행
+                                sql = f"INSERT INTO `{selected_table}` VALUES ({new_values})"
+                                cur.execute(sql)
+                                con.commit()
+                                st.success("성공적으로 값을 입력하였습니다.")
+                            except Exception as e:
+                                st.error(f"비상!!! 에러발생!: {e}")
+                    except Exception as e:
+                        st.error(f"테이블 정보 가져오기 중 에러 발생: {e}")
 
                 elif action == "Update":
-                    st.subheader(f"{selected_table}의 값을 바꿉니다.")
-                    condition = st.text_input("Condition (e.g., id=1):")
-                    update_values = st.text_area("Update values (e.g., name='new_name'):")
-                    if st.button("Submit Update"):
+                    st.subheader(f"{selected_table}의 설정값을 바꿉니다.")
+                    condition = st.text_input("조건문 작성 (e.g., id=1):")
+                    update_values = st.text_area("입력할 값 (e.g., name='new_name'):")
+                    if st.button("업데이트하기"):
                         try:
                             sql = f"UPDATE `{selected_table}` SET {update_values} WHERE {condition}"
                             cur.execute(sql)
                             conn.commit()
-                            st.success("Record updated successfully.")
+                            st.success("업데이트 성공적.")
                         except Exception as e:
-                            st.error(f"An error occurred while updating the record: {e}")
+                            st.error(f"비상!!! 에러발생!: {e}")
 
                 elif action == "Delete":
-                    st.subheader(f"Deleting entries from {selected_table}")
-                    condition = st.text_input("Condition (e.g., id=1):")
-                    if st.button("Submit Delete"):
+                    st.subheader(f"{selected_table}에서 값 지우기")
+                    condition = st.text_input("조건 (e.g., id=1):")
+                    if st.button("지우기"):
                         try:
                             sql = f"DELETE FROM `{selected_table}` WHERE {condition}"
                             cur.execute(sql)
                             conn.commit()
-                            st.success("Record deleted successfully.")
+                            st.success("삭제 성공적.")
                         except Exception as e:
-                            st.error(f"An error occurred while deleting the record: {e}")
+                            st.error(f"비상!!! 에러발생!: {e}")
         except Exception as e:
             st.error(f"An error occurred: {e}")
     # DB 연결 종료
