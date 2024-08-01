@@ -44,58 +44,97 @@ if con:
                     # 데이터 조회
                     st.subheader(f"Data in {selected_table}")
                     try:
-                        cur.execute(f"SELECT * FROM `{selected_table}`")
-                        rows = cur.fetchall()
-                        if rows:
-                            df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
-                            st.dataframe(df)
-                            chart_type = st.selectbox('Select Chart Type', ['Line Plot', 'Bar Plot', 'Histogram', 'Pie Chart', 'Box Plot', 'Scatter Plot'])
-                            columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
-                            x_var = st.selectbox('Select X variable', columns)
-                            y_var = st.selectbox('Select Y variable', columns)
-                            if chart_type == 'Line Plot':
-                                if x_var and y_var:
-                                    st.write(f"Line plot between {x_var} and {y_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.lineplot(data=df, x=x_var, y=y_var, ax=ax)
-                                    st.pyplot(fig)
-                            elif chart_type == 'Bar Plot':
-                                if x_var:
-                                    st.write(f"Bar plot of {x_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.barplot(x=x_var, y=df[x_var].index, data=df, ax=ax)
-                                    st.pyplot(fig)
-                            elif chart_type == 'Histogram':
-                                if x_var:
-                                    st.write(f"Histogram of {x_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.histplot(df[x_var], ax=ax, bins=30)
-                                    st.pyplot(fig)
-                            elif chart_type == 'Pie Chart':
-                                if x_var:
-                                    st.write(f"Pie chart of {x_var}")
-                                    fig, ax = plt.subplots()
-                                    df[x_var].value_counts().plot.pie(ax=ax, autopct='%1.1f%%')
-                                    st.pyplot(fig)
+                        cur.execute(f"SELECT * FROM `{selected_table}` LIMIT 1")
+                        column_names = [desc[0] for desc in cur.description]
 
-                            elif chart_type == 'Box Plot':
-                                if x_var:
-                                    st.write(f"Box plot of {x_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.boxplot(x=df[x_var], ax=ax)
-                                    st.pyplot(fig)
+                        # 멀티 셀렉트를 통해 원하는 컬럼 선택
+                        selected_columns = st.multiselect('표시할 열을 선택해주세요', column_names)
 
-                            elif chart_type == 'Scatter Plot':
-                                if x_var and y_var:
-                                    st.write(f"Scatter plot between {x_var} and {y_var}")
-                                    fig, ax = plt.subplots()
-                                    sns.scatterplot(data=df, x=x_var, y=y_var, ax=ax)
-                                    st.pyplot(fig)
-                            st.write("Pair Plot")
-                            pair_plot = sns.pairplot(df)
-                            st.pyplot(pair_plot)
+                        # 선택된 열이 없는 경우 처리
+                        if not selected_columns:
+                            st.write("적어도 한개의 열을 선택해주세요")
                         else:
-                            st.info("No data found in the selected table.")
+                        # 선택된 열들로 SELECT 쿼리 구성
+                            selected_columns_str = ", ".join(selected_columns)
+                            query = f"SELECT {selected_columns_str} FROM `{selected_table}`"
+                            cur.execute(query)
+                            rows = cur.fetchall()
+                            if rows:
+                                df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])                            
+                                st.dataframe(df)
+                                chart_type = st.selectbox('Select Chart Type', ['Line Plot', 'Bar Plot', 'Histogram', 'Pie Chart', 'Box Plot', 'Scatter Plot'])
+                                columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
+                                x_var = st.selectbox('X 축 선택', columns)
+                                y_var = st.selectbox('Y 축 선택', columns)
+                                if chart_type == 'Line Plot':
+                                    if x_var and y_var:
+                                        st.write(f"Line plot between {x_var} and {y_var}")
+                                        fig, ax = plt.subplots()
+                                        sns.lineplot(data=df, x=x_var, y=y_var, ax=ax)
+                                        st.pyplot(fig)
+                                elif chart_type == 'Bar Plot':
+                                    if x_var:
+                                        st.write(f"Bar plot of {x_var}")
+                                        fig, ax = plt.subplots()
+                                        sns.barplot(x=x_var, y=df[x_var].index, data=df, ax=ax)
+                                        st.pyplot(fig)
+                                elif chart_type == 'Histogram':
+                                    if x_var:
+                                        st.write(f"Histogram of {x_var}")
+                                        fig, ax = plt.subplots()
+                                        sns.histplot(df[x_var], ax=ax, bins=30)
+                                        st.pyplot(fig)
+                                elif chart_type == 'Pie Chart':
+                                    if x_var:
+                                        st.write(f"Pie chart of {x_var}")
+                                        fig, ax = plt.subplots()
+                                        df[x_var].value_counts().plot.pie(ax=ax, autopct='%1.1f%%')
+                                        st.pyplot(fig)
+                                elif chart_type == 'Box Plot':
+                                    if x_var:
+                                        st.write(f"Box plot of {x_var}")
+                                        fig, ax = plt.subplots()
+                                        sns.boxplot(x=df[x_var], ax=ax)
+                                        st.pyplot(fig)
+                                elif chart_type == 'Scatter Plot':
+                                    if x_var and y_var:
+                                        st.write(f"Scatter plot between {x_var} and {y_var}")
+                                        fig, ax = plt.subplots()
+                                        sns.scatterplot(data=df, x=x_var, y=y_var, ax=ax)
+                                        st.pyplot(fig)
+                                file = st.file_uploader('CSV파일이나 xls파일을 업로드해주세요')
+                                file_extension = file.name.split('.')[-1].lower()
+                                csv_ex = ['csv']
+                                excelex = ['xls', 'xlsx']
+                                if file_extension in csv_ex:
+                                    filedf = pd.read_csv(file)
+                                elif file_extension in excelex:
+                                    filedf = pd.read_excel(file)
+                                else:
+                                    st.error("CSV나 엑셀 파일을 업로드해주세요.")
+                                    filedf = None
+
+                                    if filedf is not None:
+                                    # 테이블 이름과 데이터베이스 선택
+                                        selected_db = st.text_input("올리신 파일의 데이터베이스 이름을 입력해주세요:")
+                                        selected_table = st.text_input("올리신 파일의 테이블 이름을 입력해주세요:")
+
+                                        # SQL 쿼리 생성 버튼
+                                        if st.button("SQL 생성하기"):
+                                            if selected_db and selected_table:
+                                                # SQL 쿼리 생성
+                                                insert_statements = []
+                                                for index, row in filedf.iterrows():
+                                                    columns = ', '.join([f"`{col}`" for col in filedf.columns])
+                                                    values = ', '.join([f"'{str(val)}'" if not pd.isnull(val) else 'NULL' for val in row])
+                                                    sql = f"INSERT INTO `{selected_db}`.`{selected_table}` ({columns}) VALUES ({values});"
+                                                    insert_statements.append(sql)
+                                if file_extension not in csv_ex + excelex:
+                                    print("CSV나 엑셀파일을 올려주세요.")
+                                else:
+                                    print(f"{file}을 데이터베이스에 업로드합니다.")
+                            else:
+                                st.info("선택하신 테이블에서 찾을수 없습니다.")
                     except Exception as e:
                         st.error(f"An error occurred while retrieving data: {e}")
 
