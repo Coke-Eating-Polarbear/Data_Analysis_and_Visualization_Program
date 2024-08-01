@@ -118,7 +118,7 @@ if conn:
                                 conn.commit()
                                 st.success("성공적으로 값을 입력하였습니다.")
                             except Exception as e:
-                                st.error(f"비상!!! 에러발생!: {e}")
+                                st.error(f"비상!!! 공습경보! 에러발생!: {e}")
                     except Exception as e:
                         st.error(f"테이블 정보 가져오기 중 에러 발생: {e}")
 
