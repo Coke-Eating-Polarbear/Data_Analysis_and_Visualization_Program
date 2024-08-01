@@ -3,7 +3,8 @@ import pandas as pd
 import streamlit as st
 from connect import sql_conn
 from function import graph
-
+from streamlit_option_menu import option_menu
+from sqlalchemy import create_engine
 st.title("너무 춥조 에어컨 직빵이조")
 
 ######### DB 연결부 ##########
@@ -82,37 +83,7 @@ if conn:
                                 elif chart_type == 'Scatter Plot':
                                     if x_var and y_var:
                                         graph.draw_scatter_plot(df, x_var, y_var)
-                                file = st.file_uploader('CSV파일이나 xls파일을 업로드해주세요')
-                                file_extension = file.name.split('.')[-1].lower()
-                                csv_ex = ['csv']
-                                excelex = ['xls', 'xlsx']
-                                if file_extension in csv_ex:
-                                    filedf = pd.read_csv(file)
-                                elif file_extension in excelex:
-                                    filedf = pd.read_excel(file)
-                                else:
-                                    st.error("CSV나 엑셀 파일을 업로드해주세요.")
-                                    filedf = None
-
-                                    if filedf is not None:
-                                    # 테이블 이름과 데이터베이스 선택
-                                        selected_db = st.text_input("올리신 파일의 데이터베이스 이름을 입력해주세요:")
-                                        selected_table = st.text_input("올리신 파일의 테이블 이름을 입력해주세요:")
-
-                                        # SQL 쿼리 생성 버튼
-                                        if st.button("SQL 생성하기"):
-                                            if selected_db and selected_table:
-                                                # SQL 쿼리 생성
-                                                insert_statements = []
-                                                for index, row in filedf.iterrows():
-                                                    columns = ', '.join([f"`{col}`" for col in filedf.columns])
-                                                    values = ', '.join([f"'{str(val)}'" if not pd.isnull(val) else 'NULL' for val in row])
-                                                    sql = f"INSERT INTO `{selected_db}`.`{selected_table}` ({columns}) VALUES ({values});"
-                                                    insert_statements.append(sql)
-                                if file_extension not in csv_ex + excelex:
-                                    print("CSV나 엑셀파일을 올려주세요.")
-                                else:
-                                    print(f"{file}을 데이터베이스에 업로드합니다.")
+                                
                             else:
                                 st.info("선택하신 테이블에서 찾을수 없습니다.")
                     except Exception as e:
@@ -144,7 +115,7 @@ if conn:
                                 # INSERT SQL 문 생성 및 실행
                                 sql = f"INSERT INTO `{selected_table}` VALUES ({new_values})"
                                 cur.execute(sql)
-                                con.commit()
+                                conn.commit()
                                 st.success("성공적으로 값을 입력하였습니다.")
                             except Exception as e:
                                 st.error(f"비상!!! 에러발생!: {e}")
@@ -175,8 +146,34 @@ if conn:
                             st.success("삭제 성공적.")
                         except Exception as e:
                             st.error(f"비상!!! 에러발생!: {e}")
+                
         except Exception as e:
             st.error(f"An error occurred: {e}")
     # DB 연결 종료
+    file = st.file_uploader('CSV파일이나 xls파일을 업로드해주세요')
+    if file is not None:
+        file_extension = file.name.split('.')[-1].lower()
+        csv_ex = ['csv']
+        excelex = ['xls', 'xlsx']
+        if file_extension in csv_ex:
+            filedf = pd.read_csv(file)
+        elif file_extension in excelex:
+            filedf = pd.read_excel(file)
+        else:
+            st.error("CSV나 엑셀 파일을 업로드해주세요.")
+            filedf = None
+
+        if filedf is not None:
+        # 테이블 이름과 데이터베이스 선택
+            selected_db = st.text_input("올리신 파일의 데이터베이스(스키마) 이름을 입력해주세요:")
+            selected_table = st.text_input("올리신 파일의 테이블 이름을 입력해주세요:")
+            engine = create_engine(f'mysql+pymysql://root:babo2862@localhost/{selected_db}')
+            if st.button("SQL 생성하기"):
+                filedf.to_sql(selected_table, con=engine, if_exists='replace', index=False)
+                st.write("SQL에 성공적으로 업로드를 하였습니다.")
+                if file_extension not in csv_ex + excelex:
+                    print("CSV나 엑셀파일을 올려주세요.")
+                else:
+                    print(f"{file}을 데이터베이스에 업로드합니다.")
     if conn:
         conn.close()
