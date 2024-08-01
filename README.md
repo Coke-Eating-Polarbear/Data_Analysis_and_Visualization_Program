@@ -44,7 +44,7 @@
 ***
 
 ## **역할분담**
-**임정규**: 프로그램에 open AI 연동 및 코드 리팩토링 진행, 서버 연동 및 협업 환경 구축 <br>
-**정지연**: book information csv 파일 SQL 형식 변환 (DB 연동) 및 카테고리 테이블 구축, 데이터 정제 <br>
-**김명준**: streamlit 기반 python 코드 작성 및 프로그램 구현, 서비스 고도화 <br>
-**안시은**: book information SQL 데이터 정제 및 테이블 조인, xlsx 파일 변환 <br>
+- **임정규**: 프로그램에 open AI 연동 및 코드 리팩토링 진행, 서버 연동 및 협업 환경 구축 <br>
+- **정지연**: book information csv 파일 SQL 형식 변환 (DB 연동) 및 카테고리 테이블 구축, 데이터 정제 <br>
+- **김명준**: streamlit 기반 python 코드 작성 및 프로그램 구현, 서비스 고도화 <br>
+- **안시은**: book information SQL 데이터 정제 및 테이블 조인, xlsx 파일 변환 <br>
